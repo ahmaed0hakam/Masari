@@ -41,14 +41,6 @@ Welcome to the AI Career Assistant! This Streamlit web application is designed t
 3. Upload your resume (for the "Skillfy" option).
 4. Click the "Submit" button to generate results.
 
-## Contributors
-
-- [Your Name](https://github.com/yourusername)
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
 ## Acknowledgments
 
 - Built using Streamlit and LangChain libraries.
