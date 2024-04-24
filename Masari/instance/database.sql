@@ -2,9 +2,17 @@
 -- CREATE TABLE Users (
 --     id INTEGER PRIMARY KEY AUTOINCREMENT,
 --     username TEXT NOT NULL UNIQUE,
---     password TEXT NOT NULL
+--     password TEXT NOT NULL,
+--     name TEXT,
+--     age INTEGER,
 -- );
 -- SELECT * FROM users;
+
+-- INSERT INTO UserLearningPaths (user_id, path_id)
+-- VALUES (2, 1);
+
+-- INSERT INTO UserLearningPaths (user_id, path_id)
+-- VALUES (2, 2);
 
 -- INSERT INTO Users (username, password) VALUES ('admin', 'admin');
 

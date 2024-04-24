@@ -1,0 +1,16 @@
+<!-- templates/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Home Page</h1>
+<p>This is the content of the home page.</p>
+<div class="container">
+    <div class="alert alert-primary" role="alert">
+        Profile!
+    </div>
+    <p>Your User ID: {{ userId }}</p>
+</div>
+<a href="{{url_for('logout')}}">logout</a>
+{% endblock %}

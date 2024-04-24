@@ -4,7 +4,41 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1>Welcome to the Home Page</h1>
-<p>This is the content of the home page.</p>
-<a href="{{url_for('logout')}}">logout</a>
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+
+<!-- <section class="content-container"> -->
+    <aside class="sidebar">
+        <!-- Content for the aside element (sidebar) -->
+        <h3>History</h3>
+        <h4 class="sd-header">Learning Paths</h4>
+        {% if learning_paths %}
+            {% for path in learning_paths %}
+                <p>
+                    <a href="{{ url_for('learning_path', path_id=path.id) }}">{{ path.title }}</a>
+                </p>
+            {% endfor %}
+        
+        {% else %}
+            <p>No learning paths available.</p>
+        {% endif %}
+
+        <h4 class="sd-header">Courses</h4>
+        {% if courses %}
+            {% for course in courses %}
+                <p>
+                    <a href="{{ url_for('course', course_id=course.id) }}">{{ course.title }}</a>
+                </p>
+            {% endfor %}
+        
+        {% else %}
+            <p>No courses available.</p>
+        {% endif %}
+    </aside>
+    <div class="main-content">
+        <!-- Content for the main div next to the aside -->
+        <h1>Welcome Mr <span style="color: #0097b2;">{{ name }}</span></h1>
+        <h5>{{learning_paths}}</h5>
+        <p>This is the main content area. You can place your main content, articles, or other elements here.</p>
+    </div>
+<!-- </section> -->
 {% endblock %}
