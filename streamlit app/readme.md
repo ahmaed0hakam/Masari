@@ -12,8 +12,10 @@ Welcome to the AI Career Assistant! This Streamlit web application is designed t
 1. Clone this repository to your local machine:
 
     ```
-    git clone <repository-url>
+    git clone [<repository-url>](https://github.com/ahmaed0hakam/Masari.git)
     ```
+
+    then ``` cd streamlit app ```
 
 2. Install the required dependencies:
 
