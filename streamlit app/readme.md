@@ -15,21 +15,24 @@ Welcome to the AI Career Assistant! This Streamlit web application is designed t
     git clone [<repository-url>](https://github.com/ahmaed0hakam/Masari.git)
     ```
 
-    then ``` cd streamlit app ```
+   then
+   ```
+   cd streamlit app
+   ```
 
-2. Install the required dependencies:
+3. Install the required dependencies:
 
     ```
     pip install -r requirements.txt
     ```
 
-3. Run the Streamlit app:
+4. Run the Streamlit app:
 
     ```
     streamlit run app.py
     ```
 
-4. Access the app in your browser at `http://localhost:8501`.
+5. Access the app in your browser at `http://localhost:8501`.
 
 ## Usage
 
