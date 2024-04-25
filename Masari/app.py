@@ -3,9 +3,10 @@ from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, DateField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -31,18 +32,39 @@ class Users(db.Model, UserMixin):
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
+    birthdate = db.Column(db.Date)
+    learning_paths = db.relationship('LearningPaths', backref='user', lazy=True)
+    courses = db.relationship('Courses', backref='user', lazy=True)
+
+
+class LearningPaths(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+class Courses(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
 class RegisterForm(FlaskForm):
+    name = StringField('Name', validators=[InputRequired(), Length(min=3, max=20)], render_kw={"placeholder": "Name"})
     username = StringField('Username', validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField('Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Password"})
     confirm_password = PasswordField('Confirm Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Confirm Password"})
+    birthdate = DateField('Birth Date', validators=[InputRequired()], render_kw={"placeholder": "Birth Date"})
     submit = SubmitField('Register')
 
     def validate_username(self, username):
         user = Users.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('That username is taken. Please choose a different one.')
+        
+    def validate_password(self, field):
+        if self.password.data != self.confirm_password.data:
+            raise ValidationError('Passwords must match')
         
 
 class LoginForm(FlaskForm):
@@ -90,9 +112,17 @@ def register():
 
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = Users(username=form.username.data, password=hashed_password)
+
+        new_user = Users(
+            username=form.username.data,
+            password=hashed_password,
+            name=form.name.data,
+            birthdate=form.birthdate.data  # Use the birthdate string directly
+        )
+
         db.session.add(new_user)
         db.session.commit()
+
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
@@ -100,7 +130,9 @@ def register():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', name=current_user.name)
+    learning_paths = current_user.learning_paths
+    courses = current_user.courses
+    return render_template('dashboard.html', name=current_user.name, learning_paths=learning_paths, courses=courses)
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -111,6 +143,20 @@ def profile():
 @login_required
 def liked():
     return render_template('liked.html')
+
+@app.route('/learningpath/<int:path_id>', methods=['GET', 'POST'])
+@login_required
+def learningpath(path_id):
+    # Retrieve the learning path based on the path_id
+    path = LearningPaths.query.get_or_404(path_id)
+    return render_template('learningpath.html', path=path)
+
+@app.route('/course/<int:course_id>', methods=['GET', 'POST'])
+@login_required
+def course(course_id):
+    # Retrieve the learning path based on the course_id
+    course = Courses.query.get_or_404(course_id)
+    return render_template('course.html', course=course)
 
 @app.route('/logout')
 @login_required

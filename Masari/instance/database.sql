@@ -8,8 +8,30 @@
 -- );
 -- SELECT * FROM users;
 
+-- ALTER TABLE Users RENAME COLUMN age TO birthdate;
+
 -- INSERT INTO UserLearningPaths (user_id, path_id)
 -- VALUES (2, 1);
+
+-- ALTER TABLE LearningPaths RENAME TO learning_paths;
+
+
+-- INSERT INTO learning_paths (title, description, user_id)
+-- VALUES ('Path1', 'Learn Python programming basics', 3),
+--        ('Path2', 'Introductory course on web development', 2),
+--        ('Database Path', 'Learn about databases and SQL queries', 3),
+--        ('Machine Learning Path', 'Introduction to machine learning concepts', 3);
+
+
+UPDATE Users
+SET birthdate = '2001-03-24'  -- Replace new_user_id with the desired new user_id
+WHERE id = 2;
+
+-- -- Update user_id for LearningPaths with id = 2
+-- UPDATE Users
+-- SET birthdate = '2001-03-24'  -- Replace new_user_id with the desired new user_id
+-- WHERE id = 1;
+
 
 -- INSERT INTO UserLearningPaths (user_id, path_id)
 -- VALUES (2, 2);

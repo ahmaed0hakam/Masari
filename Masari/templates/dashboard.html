@@ -14,7 +14,7 @@
         {% if learning_paths %}
             {% for path in learning_paths %}
                 <p>
-                    <a href="{{ url_for('learning_path', path_id=path.id) }}">{{ path.title }}</a>
+                    <a href="{{ url_for('learningpath', path_id=path.id) }}">{{ path.title }}</a>
                 </p>
             {% endfor %}
         
@@ -37,7 +37,6 @@
     <div class="main-content">
         <!-- Content for the main div next to the aside -->
         <h1>Welcome Mr <span style="color: #0097b2;">{{ name }}</span></h1>
-        <h5>{{learning_paths}}</h5>
         <p>This is the main content area. You can place your main content, articles, or other elements here.</p>
     </div>
 <!-- </section> -->
