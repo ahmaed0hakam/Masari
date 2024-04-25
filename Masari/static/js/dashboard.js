@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const inputField = $('input');
+    const inputField = $('input#searchInput');
     const learningPathButton = $('.buttons button#pathButton');
     const courseButton = $('.buttons button#courseButton');
 
@@ -15,20 +15,20 @@ $(document).ready(function() {
 
     // Handle button click events
     learningPathButton.on('click', function() {
-        generateLearningPath();
+        generateLearningPath(inputField.val());
     });
 
     courseButton.on('click', function() {
-        generateCourse();
+        generateCourse(inputField.val());
     });
 });
 
-function generateLearningPath() {
+function generateLearningPath(text) {
     $.ajax({
         url: '/api/generate_learningpath',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({}),
+        data: JSON.stringify({ text: text }),
         success: function(data) {
             Swal.fire({
                 icon: 'success',
@@ -51,12 +51,12 @@ function generateLearningPath() {
     });
 }
 
-function generateCourse() {
+function generateCourse(text) {
     $.ajax({
-        url: '/api/generate_courses',
+        url: '/api/generate_course',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({}),
+        data: JSON.stringify({ text: text }),
         success: function(data) {
             Swal.fire({
                 icon: 'success',
