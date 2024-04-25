@@ -23,9 +23,12 @@
 --        ('Machine Learning Path', 'Introduction to machine learning concepts', 3);
 
 
-UPDATE Users
-SET birthdate = '2001-03-24'  -- Replace new_user_id with the desired new user_id
-WHERE id = 2;
+-- UPDATE Users
+-- SET birthdate = '2001-03-24'  -- Replace new_user_id with the desired new user_id
+-- WHERE id = 2;
+
+-- ALTER TABLE learning_paths
+-- DROP COLUMN course_id;
 
 -- -- Update user_id for LearningPaths with id = 2
 -- UPDATE Users
