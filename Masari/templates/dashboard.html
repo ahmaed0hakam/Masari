@@ -5,6 +5,7 @@
 
 {% block content %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 <!-- <section class="content-container"> -->
     <aside class="sidebar">
@@ -37,7 +38,26 @@
     <div class="main-content">
         <!-- Content for the main div next to the aside -->
         <h1>Welcome Mr <span style="color: #0097b2;">{{ name }}</span></h1>
-        <p>This is the main content area. You can place your main content, articles, or other elements here.</p>
+        <div class="qa-card-holder">
+            <div class="qa-card">
+                <div class="qa-generate-header">
+                    <div>
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}">
+                    </div>
+                    <p>Empowering my learning approach and upskilling my capabilities.</p>
+                </div>
+                <div class="qa-generate-container">
+                    <h6>Choose what and how you want to learn:</h6>
+                    <div class="input-wrapper">
+                        <input type="text" class="styled-input" id="searchInput" placeholder="ex: Intro to GenAI">
+                    </div>
+                    <div class="buttons">
+                        <button class="styled-button" id="courseButton" disabled>Course</button>
+                        <button class="styled-button" id="pathButton" disabled>Learning path</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 <!-- </section> -->
 {% endblock %}
