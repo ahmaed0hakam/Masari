@@ -14,6 +14,11 @@ from langchain_community.llms import Ollama
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks.manager import CallbackManager
 from langchain_core.output_parsers import StrOutputParser
+from langchain_community.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import PromptTemplate
 #############################################
 
 
@@ -350,6 +355,52 @@ def generate_content():
     else:
         # If lesson with the given lesson_id is not found
         return jsonify({'message': 'Lesson not found'}), 404
+    
+@app.route('/api/generate_reply', methods=['POST'])
+@login_required
+def generate_reply():
+
+    # Retrieve data from incoming JSON request
+    request_data = request.get_json()
+    user_input = request_data.get('user_input')
+    lesson_id = request_data.get('lesson_id')
+    content = Lessons.query.get(lesson_id).content
+    print(user_input)
+    print(content)
+
+    print("Content is:", content)
+
+
+    # Restructure to process the info in chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = text_splitter.split_documents(content)
+    vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings())
+
+    # Retrieve info from chosen source
+    retriever = vectorstore.as_retriever(search_type="similarity")
+
+    template = """Use the following pieces of context to answer the question at the end.
+    Say that you don't know when asked a question you don't know, donot make up an answer. Be precise and concise in your answer.
+
+    {context}
+
+    Question: {question}
+
+    Helpful Answer:"""
+
+    # Add the context to your user query
+    custom_rag_prompt = PromptTemplate.from_template(template)
+
+    rag_chain = (
+        {"context": retriever | content, "question": RunnablePassthrough()}
+        | custom_rag_prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    answer = rag_chain.invoke(user_input)
+
+    return answer
 
 
 if __name__ == '__main__':
