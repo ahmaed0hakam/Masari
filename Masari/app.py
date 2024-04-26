@@ -23,7 +23,7 @@ app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
 
 # Define the Ollama model and callback manager
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-llm = Ollama(model="llama3", callbacks=callback_manager, verbose=True)
+llm = Ollama(model="phi3", callbacks=callback_manager, verbose=True)
 output_parser = StrOutputParser()
 
 
@@ -213,16 +213,12 @@ def generate_learning_path():
         Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names, the output format should be string separated by commas:
         """
 
-
         new_path = LearningPaths(title=lp_title, user_id=current_user.id)
         db.session.add(new_path)
         db.session.commit()
         
         # Populate the prompt with the user's topic
         prompt = prompt_template.format(lp_title=lp_title)  # Provide user_title as a named argument
-
-        # Generate response from the modelp
-
         response_llm = llm.invoke(prompt)
 
         lp_courses = response_llm.replace('"', '').split(',')
@@ -266,11 +262,6 @@ def generate_lessons():
         1. Introduction to python
         2. Data types in python
         """
-
-
-        # new = LearningPaths(title=lp_title, user_id=current_user.id)
-        # db.session.add(new_path)
-        # db.session.commit()
         
         # Populate the prompt with the user's topic
         prompt = lesson_prompt_template.format(course_title=course_title)
@@ -294,16 +285,51 @@ def generate_lessons():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/generate_courses', methods=['POST'])
+@app.route('/api/generate_content', methods=['POST'])
 @login_required
-def generate_courses():
-    # Placeholder for actual course generation logic
-    new_course = Courses(title="Sample Course", description="Generated Course", user_id=current_user.id)
-    db.session.add(new_course)
+def generate_content():
+
+    # Retrieve data from incoming JSON request
+    request_data = request.get_json()
+    lesson_title = request_data.get('text')  # Get course title from request
+    user_id = request_data.get('user_id')  # Get user ID from request (assuming it's passed)
+
+    # Define a prompt template to guide lesson content generation
+    content_prompt_template = """
+    Lesson: {lesson_title} in "{course_title}"
+
+    **Lesson Overview:**
+    In this lesson, we will delve into the key topics related to "{lesson_title}" within the course "{course_title}". Please provide detailed content covering the following aspects:
+
+    **Key Topics to Cover:**
+    1. 
+    2. 
+    3. 
+
+    **Examples and Explanations:**
+    - Please include illustrative examples to clarify the concepts.
+    - Provide detailed explanations to ensure comprehension.
+
+    **Exercises:**
+    - Develop exercises or problems related to the lesson topics.
+    - Include solutions or hints where applicable.
+
+    **Additional Notes:**
+    Feel free to add any additional insights or details that would enhance this lesson.
+
+    """
+
+    # Create a new learning path with the specified title and associate it with the user
+    new_path = Lessons(title=course_title, user_id=user_id)
+    db.session.add(new_path)
     db.session.commit()
-    return {'id': new_course.id}
 
+    # Populate the prompt template with the course title
+    prompt = content_prompt_template.format(course_title=course_title)
 
+    print("Print")
+    # Generate response from the language model based on the populated prompt
+    content_llm = llm.invoke(prompt)
 
 if __name__ == '__main__':
     app.run(debug=True)
