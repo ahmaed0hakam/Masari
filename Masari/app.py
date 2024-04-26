@@ -8,9 +8,25 @@ from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 
+
+#############################################
+from langchain_community.llms import Ollama
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.callbacks.manager import CallbackManager
+from langchain_core.output_parsers import StrOutputParser
+#############################################
+
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
+
+# Define the Ollama model and callback manager
+callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+llm = Ollama(model="phi3", callbacks=callback_manager, verbose=True)
+output_parser = StrOutputParser()
+
+
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -152,8 +168,15 @@ def liked():
 @login_required
 def learningpath(path_id):
     # Retrieve the learning path based on the path_id
-    path = LearningPaths.query.get_or_404(path_id)
-    return render_template('learningpath.html', path=path)
+    # Assuming you have a LearningPath model to retrieve the path_id, adjust this query accordingly
+
+    # Query courses based on the learning_path_id
+    courses = Courses.query.filter_by(learning_path_id=path_id).all()
+
+    course_titles = [{course.id, course.title} for course in courses]
+
+    # Render the template 'learningpath.html' and pass courses to the template
+    return render_template('learningpath.html', courses=course_titles)
 
 @app.route('/course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -179,10 +202,32 @@ def generate_learning_path():
         user_id = request_data.get('user_id')
 
         # path_id = generate_path(text, user_id)
-        
+
+        # Define the prompt template with revised instructions
+        prompt_template = """
+        You are creating a personalized learning path for a user interested in {lp_title}. 
+        Please provide the course names only, ordered based on difficulty and correct ordering in the learning path, the output format should be string separated by commas:
+        """
+
+
         new_path = LearningPaths(title=lp_title, user_id=current_user.id)
         db.session.add(new_path)
         db.session.commit()
+        
+        # Populate the prompt with the user's topic
+        prompt = prompt_template.format(lp_title=lp_title)  # Provide user_title as a named argument
+
+        # Generate response from the modelp
+
+        print("anything")
+
+        response_llm = llm.invoke(prompt)
+
+        lp_courses = response_llm.replace('"', '').split(',')
+        for course in lp_courses:
+            new_course = Courses(title=course, learning_path_id=new_path.id)
+            db.session.add(new_course)
+            db.session.commit()
 
         response = {
             'id': new_path.id
