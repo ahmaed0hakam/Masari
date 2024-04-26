@@ -163,8 +163,8 @@ def register():
 @login_required
 def dashboard():
     learning_paths = current_user.learning_paths
-    courses = current_user.courses
-    return render_template('dashboard.html', name=current_user.name, learning_paths=learning_paths, courses=courses)
+    # courses = current_user.courses
+    return render_template('dashboard.html', name=current_user.name, learning_paths=learning_paths)
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required

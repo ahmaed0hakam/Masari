@@ -83,6 +83,20 @@ a:hover {
     box-sizing: border-box;
 } */
 
+.btn-bluesky {
+    background-color: #777;
+    border: 2px solid #0097b2;
+    color: #fff;
+    transition: border-color, background-color 0.3s ease;
+    
+}
+
+.btn-bluesky:hover {
+    border-color: transparent;
+    background-color: #0097b2;
+    color: #fff;
+}
+
 img {
     max-width: 100%;
     height: auto;
@@ -184,6 +198,12 @@ footer {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 

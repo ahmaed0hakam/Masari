@@ -21,6 +21,8 @@ function generateLessons(lessonTitle, lessonId) {
                 const content = data.content;
                 const $contentArea = $('.content-area');
                 $contentArea.text(content);
+                const $lessonTitle = $('.lesson-title');
+                $lessonTitle.text(lessonTitle);
                
             });
         },
