@@ -180,14 +180,17 @@ def learningpath(path_id):
 
     return render_template('learningpath.html', courses=course_titles)
 
-@app.route('/course/<int:course_id>', methods=['GET', 'POST'])
+@app.route('/course/<int:course_id>/<path:course_title>', methods=['GET', 'POST'])
 @login_required
-def course(course_id):
+def course(course_id, course_title):
+
+    decoded_course_title = course_title.replace('-', ' ')
+
     lessons = Lessons.query.filter_by(course_id=course_id).all()
 
     lessons_titles = [{'id':lesson.id, 'title': lesson.title} for lesson in lessons]
 
-    return render_template('course.html', lessons=lessons_titles)
+    return render_template('course.html', lessons=lessons_titles, course_title=decoded_course_title)
 
 @app.route('/logout')
 @login_required
@@ -247,7 +250,8 @@ def generate_lessons():
         user_id = request_data.get('user_id')
 
         response = {
-            'id': course_id
+            'id': course_id,
+            'course_title': course_title
         }
 
         existing_lesson = Lessons.query.filter_by(course_id=course_id).first()
@@ -291,15 +295,24 @@ def generate_content():
 
     # Retrieve data from incoming JSON request
     request_data = request.get_json()
-    lesson_title = request_data.get('text')  # Get course title from request
+    lesson_title = request_data.get('lesson_title')  # Get course title from request
+    course_title = request_data.get('course_title')
+    lesson_id = request_data.get('lesson_id')
     user_id = request_data.get('user_id')  # Get user ID from request (assuming it's passed)
-
     # Define a prompt template to guide lesson content generation
-    content_prompt_template = """
-    Lesson: {lesson_title} in "{course_title}"
+    #
+    #  within the course "{course_title}".
+
+    existing_content = Lessons.query.filter_by(id=lesson_id).first().content
+
+    if existing_content:
+        return jsonify({'content': existing_content}), 200
+
+    content_prompt_template = f"""
+    Lesson: {lesson_title}"
 
     **Lesson Overview:**
-    In this lesson, we will delve into the key topics related to "{lesson_title}" within the course "{course_title}". Please provide detailed content covering the following aspects:
+    In this lesson, we will delve into the key topics related to "{lesson_title}" in "{course_title}", Please provide detailed content covering the following aspects within the course "{course_title}":
 
     **Key Topics to Cover:**
     1. 
@@ -319,17 +332,25 @@ def generate_content():
 
     """
 
-    # Create a new learning path with the specified title and associate it with the user
-    new_path = Lessons(title=course_title, user_id=user_id)
-    db.session.add(new_path)
-    db.session.commit()
+    prompt = content_prompt_template.format(lesson_title=lesson_title, course_title=course_title)
 
-    # Populate the prompt template with the course title
-    prompt = content_prompt_template.format(course_title=course_title)
+    response_llm = llm.invoke(prompt)
 
-    print("Print")
-    # Generate response from the language model based on the populated prompt
-    content_llm = llm.invoke(prompt)
+    lesson = Lessons.query.get(lesson_id)
+
+    if lesson:
+        # Update the lesson's content with the generated response
+        lesson.content = response_llm
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        # Return a success response
+        return jsonify({'content': response_llm}), 200
+    else:
+        # If lesson with the given lesson_id is not found
+        return jsonify({'message': 'Lesson not found'}), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)

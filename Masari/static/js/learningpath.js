@@ -18,7 +18,9 @@ function generateLessons(courseTitle, courseId) {
                 timer: 1500
             }).then(() => {
                 const courseId = data.id;
-                window.location.href = `/course/${courseId}`;
+                const courseTitle = encodeURIComponent(data.course_title); // Encode the course title
+
+                window.location.href = `/course/${courseId}/${courseTitle}`;
             });
         },
         error: function(xhr, status, error) {
