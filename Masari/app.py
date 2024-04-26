@@ -23,7 +23,7 @@ app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
 
 # Define the Ollama model and callback manager
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-llm = Ollama(model="phi3", callbacks=callback_manager, verbose=True)
+llm = Ollama(model="llama3", callbacks=callback_manager, verbose=True)
 output_parser = StrOutputParser()
 
 
@@ -167,15 +167,10 @@ def liked():
 @app.route('/learningpath/<int:path_id>', methods=['GET', 'POST'])
 @login_required
 def learningpath(path_id):
-    # Retrieve the learning path based on the path_id
-    # Assuming you have a LearningPath model to retrieve the path_id, adjust this query accordingly
-
-    # Query courses based on the learning_path_id
     courses = Courses.query.filter_by(learning_path_id=path_id).all()
 
     course_titles = [{course.id, course.title} for course in courses]
 
-    # Render the template 'learningpath.html' and pass courses to the template
     return render_template('learningpath.html', courses=course_titles)
 
 @app.route('/course/<int:course_id>', methods=['GET', 'POST'])
@@ -206,7 +201,7 @@ def generate_learning_path():
         # Define the prompt template with revised instructions
         prompt_template = """
         You are creating a personalized learning path for a user interested in {lp_title}. 
-        Please provide the course names only, ordered based on difficulty and correct ordering in the learning path, the output format should be string separated by commas:
+        Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names, the output format should be string separated by commas:
         """
 
 
@@ -218,8 +213,6 @@ def generate_learning_path():
         prompt = prompt_template.format(lp_title=lp_title)  # Provide user_title as a named argument
 
         # Generate response from the modelp
-
-        print("anything")
 
         response_llm = llm.invoke(prompt)
 
