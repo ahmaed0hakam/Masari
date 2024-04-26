@@ -1,0 +1,31 @@
+<!-- templates/learningpath.html -->
+{% extends 'base.html' %}
+
+{% block title %}Course{% endblock %}
+
+{% block content %}
+<script src="{{ url_for('static', filename='js/course.js') }}"></script>
+<link href="{{ url_for('static', filename='css/course.css') }}" rel="stylesheet">
+<aside class="sidebar">
+    <!-- Content for the aside element (sidebar) -->
+    <h3>History</h3>
+    <h4 class="sd-header">Learning Paths</h4>
+    {% if lessons %}
+        {% for lesson in lessons %}
+            <p class="generate-lesson-content" data-lesson-title="{{ lesson.title }}" data-lesson-id="{{ lesson.id }}">
+                {{lesson.title}}
+            </p>
+        {% endfor %}
+    
+    {% else %}
+        <p>No lessons available.</p>
+    {% endif %}
+</aside>
+<div class="main-content">
+    <!-- Content for the main div next to the aside -->
+    <h1>Welcome Mr <span style="color: #0097b2;">{{ name }}</span></h1>
+    <p class="content-area"></p>
+
+</div>
+
+{% endblock %}

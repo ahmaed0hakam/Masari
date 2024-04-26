@@ -1,15 +1,3 @@
-.sidebar .sd-header {
-    margin-top: 30px;
-    color: #777;
-}
-
-.qa-card-holder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
 .qa-card {
     width: 70%;
     height: 450px;

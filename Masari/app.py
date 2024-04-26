@@ -69,6 +69,13 @@ class Courses(db.Model):
     # Define a relationship to LearningPaths
     learning_path = db.relationship('LearningPaths', backref='courses')
 
+class Lessons(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    course = db.relationship('Courses', backref=db.backref('lessons', lazy=True))
+
 class RegisterForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired(), Length(min=3, max=20)], render_kw={"placeholder": "Name"})
     username = StringField('Username', validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -169,16 +176,18 @@ def liked():
 def learningpath(path_id):
     courses = Courses.query.filter_by(learning_path_id=path_id).all()
 
-    course_titles = [{course.id, course.title} for course in courses]
+    course_titles = [{'id':course.id, 'title': course.title} for course in courses]
 
     return render_template('learningpath.html', courses=course_titles)
 
 @app.route('/course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def course(course_id):
-    # Retrieve the learning path based on the course_id
-    course = Courses.query.get_or_404(course_id)
-    return render_template('course.html', course=course)
+    lessons = Lessons.query.filter_by(course_id=course_id).all()
+
+    lessons_titles = [{'id':lesson.id, 'title': lesson.title} for lesson in lessons]
+
+    return render_template('course.html', lessons=lessons_titles)
 
 @app.route('/logout')
 @login_required
@@ -225,6 +234,60 @@ def generate_learning_path():
         response = {
             'id': new_path.id
         }
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/generate_lessons', methods=['POST'])
+@login_required
+def generate_lessons():
+    try:
+        request_data = request.get_json()
+
+        course_title = request_data.get('course_title')
+        course_id = request_data.get('course_id')
+        user_id = request_data.get('user_id')
+
+        response = {
+            'id': course_id
+        }
+
+        existing_lesson = Lessons.query.filter_by(course_id=course_id).first()
+
+        if existing_lesson:
+            return jsonify(response), 201
+        # Define the prompt template with revised instructions
+        lesson_prompt_template = """
+        You are creating a course for a user interested in learning about {course_title}. 
+        Please provide proper number of lesson titles that would be suitable for this course, max to 5, and no other text, just lessons tiles, each prefixed with a number, don't write anything else.
+        Example:
+        1. Introduction to python
+        2. Data types in python
+        """
+
+
+        # new = LearningPaths(title=lp_title, user_id=current_user.id)
+        # db.session.add(new_path)
+        # db.session.commit()
+        
+        # Populate the prompt with the user's topic
+        prompt = lesson_prompt_template.format(course_title=course_title)
+
+        # Generate response from the modelp
+
+        response_llm = llm.invoke(prompt)
+
+        lesson_titles = response_llm.split('\n')  # Split by new lines to get individual lesson titles
+
+        # Create a list to store the lesson titles
+        # lessons_list = [f"{title.strip()}." for title in lesson_titles if title.strip()]
+
+        for lesson_title in lesson_titles:
+            new_lesson = Lessons(title=lesson_title, course_id=course_id)
+            db.session.add(new_lesson)
+            db.session.commit()
 
         return jsonify(response), 200
 
