@@ -28,7 +28,7 @@ function generateLearningPath(text) {
         url: '/api/generate_learningpath',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({ text: text }),
+        data: JSON.stringify({ text: text, user_id: userId }),
         success: function(data) {
             Swal.fire({
                 icon: 'success',
@@ -37,7 +37,7 @@ function generateLearningPath(text) {
                 timer: 1500
             }).then(() => {
                 const pathId = data.id;
-                window.location.href = `/learningpath?id=${pathId}`;
+                window.location.href = `/learningpath/${pathId}`;
             });
         },
         error: function(xhr, status, error) {
@@ -53,10 +53,10 @@ function generateLearningPath(text) {
 
 function generateCourse(text) {
     $.ajax({
-        url: '/api/generate_course',
+        url: '/api/generate_courses',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({ text: text }),
+        data: JSON.stringify({ text: text, user_id: userId }),
         success: function(data) {
             Swal.fire({
                 icon: 'success',
@@ -65,7 +65,7 @@ function generateCourse(text) {
                 timer: 1500
             }).then(() => {
                 const courseId = data.id;
-                window.location.href = `/course?id=${courseId}`;
+                window.location.href = `/course/${courseId}`;
             });
         },
         error: function(xhr, status, error) {

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -48,6 +48,10 @@ class Courses(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    learning_path_id = db.Column(db.Integer, db.ForeignKey('learning_paths.id'), nullable=True)
+
+    # Define a relationship to LearningPaths
+    learning_path = db.relationship('LearningPaths', backref='courses')
 
 class RegisterForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired(), Length(min=3, max=20)], render_kw={"placeholder": "Name"})
@@ -163,6 +167,41 @@ def course(course_id):
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/api/generate_learningpath', methods=['POST'])
+@login_required
+def generate_learning_path():
+
+    try:
+        request_data = request.get_json()
+
+        lp_title = request_data.get('text')
+        user_id = request_data.get('user_id')
+
+        # path_id = generate_path(text, user_id)
+        
+        new_path = LearningPaths(title=lp_title, user_id=current_user.id)
+        db.session.add(new_path)
+        db.session.commit()
+
+        response = {
+            'id': new_path.id
+        }
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/generate_courses', methods=['POST'])
+@login_required
+def generate_courses():
+    # Placeholder for actual course generation logic
+    new_course = Courses(title="Sample Course", description="Generated Course", user_id=current_user.id)
+    db.session.add(new_course)
+    db.session.commit()
+    return {'id': new_course.id}
+
 
 
 if __name__ == '__main__':
