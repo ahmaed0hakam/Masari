@@ -59,7 +59,7 @@ function sendChat(lastChat) {
             data: JSON.stringify({ user_input: lastChat, lesson_id: firstLessonId }),
             success: function(data) {
                 // Append the reply to the chat widget body
-                $('.chat-widget-body').append('<p>' + data.reply + '</p>');
+                $('.chat-widget-body').append('<p style="align-self: flex-end;">' + data.reply + '</p>');
             },
             error: function(xhr, status, error) {
                 // Handle error if AJAX request fails

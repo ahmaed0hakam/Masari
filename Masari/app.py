@@ -365,42 +365,21 @@ def generate_reply():
     user_input = request_data.get('user_input')
     lesson_id = request_data.get('lesson_id')
     content = Lessons.query.get(lesson_id).content
-    print(user_input)
-    print(content)
-
-    print("Content is:", content)
 
 
-    # Restructure to process the info in chunks
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = text_splitter.split_documents(content)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings())
+    context_template = f"""You are a learning assistant designed to provide accurate and helpful information. Please use the following details to answer the question provided as short as possible, max to 40 character. If you're unsure about any details, it's important to be honest and precise rather than guessing.
 
-    # Retrieve info from chosen source
-    retriever = vectorstore.as_retriever(search_type="similarity")
+    {content}
 
-    template = """Use the following pieces of context to answer the question at the end.
-    Say that you don't know when asked a question you don't know, donot make up an answer. Be precise and concise in your answer.
-
-    {context}
-
-    Question: {question}
+    Question: {user_input}
 
     Helpful Answer:"""
 
-    # Add the context to your user query
-    custom_rag_prompt = PromptTemplate.from_template(template)
 
-    rag_chain = (
-        {"context": retriever | content, "question": RunnablePassthrough()}
-        | custom_rag_prompt
-        | llm
-        | StrOutputParser()
-    )
+    response_llm = llm.invoke(context_template)
 
-    answer = rag_chain.invoke(user_input)
+    return jsonify({'reply': response_llm}), 200
 
-    return answer
 
 
 if __name__ == '__main__':
