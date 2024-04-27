@@ -275,14 +275,9 @@ def generate_lessons():
         # Populate the prompt with the user's topic
         prompt = lesson_prompt_template.format(course_title=course_title)
 
-        # Generate response from the modelp
-
         response_llm = llm.invoke(prompt)
 
         lesson_titles = response_llm.split('\n')  # Split by new lines to get individual lesson titles
-
-        # Create a list to store the lesson titles
-        # lessons_list = [f"{title.strip()}." for title in lesson_titles if title.strip()]
 
         for lesson_title in lesson_titles:
             new_lesson = Lessons(title=lesson_title, course_id=course_id)
@@ -304,9 +299,6 @@ def generate_content():
     course_title = request_data.get('course_title')
     lesson_id = request_data.get('lesson_id')
     user_id = request_data.get('user_id')  # Get user ID from request (assuming it's passed)
-    # Define a prompt template to guide lesson content generation
-    #
-    #  within the course "{course_title}".
 
     existing_content = Lessons.query.filter_by(id=lesson_id).first().content
 
@@ -314,32 +306,35 @@ def generate_content():
         return jsonify({'content': existing_content}), 200
 
     content_prompt_template = f"""
+
+    <div id="lesson-content">
     Lesson: {lesson_title}"
 
-    **Lesson Overview:**
+    Lesson Overview:
     In this lesson, we will delve into the key topics related to "{lesson_title}" in "{course_title}", Please provide detailed content covering the following aspects within the course "{course_title}":
 
-    **Key Topics to Cover:**
+    Key Topics to Cover:
     1. 
     2. 
     3. 
 
-    **Examples and Explanations:**
+    Examples and Explanations:
     - Please include illustrative examples to clarify the concepts.
     - Provide detailed explanations to ensure comprehension.
 
-    **Exercises:**
+    Exercises:
     - Develop exercises or problems related to the lesson topics.
     - Include solutions or hints where applicable.
 
-    **Additional Notes:**
+    Additional Notes:
     Feel free to add any additional insights or details that would enhance this lesson.
 
+    </div>
     """
-
     prompt = content_prompt_template.format(lesson_title=lesson_title, course_title=course_title)
 
     response_llm = llm.invoke(prompt)
+    response_llm = response_llm.replace("```html", "").replace("```", "").strip()
 
     lesson = Lessons.query.get(lesson_id)
 

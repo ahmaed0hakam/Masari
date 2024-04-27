@@ -20,7 +20,7 @@ function generateLessons(lessonTitle, lessonId) {
             }).then(() => {
                 const content = data.content;
                 const $contentArea = $('.content-area');
-                $contentArea.text(content);
+                $contentArea.html(content);
                 const $lessonTitle = $('.lesson-title');
                 $lessonTitle.text(lessonTitle);
                
