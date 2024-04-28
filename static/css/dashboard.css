@@ -1,0 +1,65 @@
+.qa-card {
+    width: 70%;
+    height: 450px;
+    background-color: #fff;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column ;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 100px;
+}
+.qa-generate-header {
+    display: flex;
+    flex-direction: column ;
+    justify-content: center;
+    align-items: center;
+}
+.qa-generate-container {
+    gap: 15px;
+    display: flex;
+    flex-direction: column ;
+    justify-content: center;
+    align-items: center;
+}
+
+.qa-generate-container .buttons {
+    display: flex;
+    gap: 30px;
+}
+
+.qa-generate-container .buttons button {
+    min-width: 150px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.qa-generate-container .buttons button:hover {
+    background-color: #0097b2;
+    color: white;
+}
+
+.qa-generate-container .buttons button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    color: #7a7a7a;
+}
+
+.qa-generate-container .styled-input {
+    width: 400px;
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 50px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.qa-generate-container .styled-input:focus {
+    outline: none;
+    border-color: #0097b2;
+}
