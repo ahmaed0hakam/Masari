@@ -266,7 +266,7 @@ def generate_lessons():
         # Define the prompt template with revised instructions
         lesson_prompt_template = """
         You are creating a course for a user interested in learning about {course_title}. 
-        Please provide proper number of lesson titles that would be suitable for this course, max to 5, and no other text, just lessons tiles, each prefixed with a number, don't write anything else.
+        Please provide proper number of lesson titles that would be suitable for this course, and no other text, just lessons tiles, each prefixed with a number, don't write anything else.
         Example:
         1. Introduction to python
         2. Data types in python
