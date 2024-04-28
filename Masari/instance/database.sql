@@ -14,9 +14,12 @@
 -- VALUES (2, 1);
 
 -- ALTER TABLE LearningPaths RENAME TO learning_paths;
-UPDATE lessons
-SET content = NULL
-WHERE course_id = 16;
+-- UPDATE lessons
+-- SET content = NULL
+-- WHERE course_id = 16;
+
+DELETE FROM learning_paths
+WHERE id = 16;
 
 -- INSERT INTO learning_paths (title, description, user_id)
 -- VALUES ('Path1', 'Learn Python programming basics', 3),
