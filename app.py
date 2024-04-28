@@ -28,7 +28,7 @@ app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
 
 # Define the Ollama model and callback manager
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-llm = Ollama(model="phi3", callbacks=callback_manager, verbose=True)
+llm = Ollama(model="llama3", callbacks=callback_manager, verbose=True)
 output_parser = StrOutputParser()
 
 
