@@ -26,7 +26,7 @@
 <div class="main-content">
     <!-- Content for the main div next to the aside -->
     <h3 class="lesson-title" style="color: #0097b2;"></h3>
-    <p class="content-area"> Click on lessons to generate content.</p>
+    <p class="content-area" id="markdown-content"> Click on lessons to generate content.</p>
 
 </div>
 <div class="chat-widget">
@@ -37,7 +37,8 @@
     <div class="chat-widget-body">
     </div>
     <div class="chat-widget-input">
-        <input type="text" placeholder="Type your question...">
+    <button id="startBtn" class="microphone-btn"><img width="20" src="{{ url_for('static', filename='images/microphone.png') }}"></button>
+        <input type="text" id="output" placeholder="Type your question...">
         <button class="send-chat" style="border-color: transparent;
         background-color: #0097b2;
         color: #fff;">Send</button>

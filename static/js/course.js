@@ -18,7 +18,10 @@ function generateLessons(lessonTitle, lessonId) {
             }).then(() => {
                 const content = data.content;
                 const $contentArea = $('.content-area');
-                $contentArea.html(content);
+                var converter = new showdown.Converter();
+                var html = converter.makeHtml(content);
+
+                $contentArea.html(html);
                 const $lessonTitle = $('.lesson-title');
                 $lessonTitle.text(lessonTitle);
 
@@ -80,8 +83,9 @@ function sendChat(lastChat, chatBubbleHTML) {
 }
 
 
-// Add event listener to Generate Lessons buttons
 $(document).ready(function () {
+
+    controlChatBotApp();
 
     $('.chat-widget').hide();
 
@@ -114,5 +118,78 @@ $(document).ready(function () {
         scrollChatToBottom();
 
         sendChat(message, chatBubbleHTML);
+    });
+
+    const startButton = $("#startBtn");
+    const outputInput = $("#output"); // Assuming outputDiv is an <input> element
+
+    if ("webkitSpeechRecognition" in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US"; // Set the language to English
+
+        let timeoutId; // Variable to hold the timeout ID
+
+        recognition.onstart = () => {
+            startButton.css('background-color', '#FFA128');
+            timeoutId = setTimeout(() => {
+                recognition.stop(); // Stop recognition after timeout
+            }, 2000); // Adjust timeout duration (e.g., 2000ms = 2 seconds)
+        };
+
+        recognition.onresult = (event) => {
+            clearTimeout(timeoutId); // Clear timeout on new speech input
+            let interimTranscript = "";
+            let finalTranscript = "";
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + " ";
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            const finalOutput = `${interimTranscript}${finalTranscript}`;
+            outputInput.val(finalOutput);
+
+            // Restart timeout for detecting silence
+            timeoutId = setTimeout(() => {
+                recognition.stop(); // Stop recognition after timeout
+            }, 2000); // Adjust timeout duration
+        };
+
+        recognition.onend = () => {
+            // startButton.text("Start Recording");
+            startButton.css('background-color', '#0097b2');
+        };
+
+        startButton.on("click", () => {
+            if (recognition.start) {
+                recognition.start();
+            }
+        });
+    } else {
+        // Display error message if Web Speech API is not supported
+        outputInput.val("Web Speech API not supported in this browser.");
+    }
+    function controlChatBotApp () {
+        const chatBody = $('.chat-widget-body');
+        const chatInput = $('.chat-widget-input')
+
+        if (chatBody.css('display') !== 'none') {
+            chatBody.css('display', 'none');
+            chatInput.css('display', 'none');
+        } else {
+            // If chat-widget-body is display none, show it as flex
+            chatBody.css('display', 'flex');
+            chatInput.css('display', 'flex');
+        }
+    }
+
+    $('.chat-widget-header').on("click", () => {
+        controlChatBotApp();
     });
 });
