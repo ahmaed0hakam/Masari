@@ -23,8 +23,12 @@ from langchain_core.prompts import PromptTemplate
 #############################################
 
 
+from flask import Flask
+from flask_cors import CORS
+
 app = Flask(__name__)
-CORS(app)
+cors = CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
 
@@ -380,4 +384,4 @@ def generate_reply():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
