@@ -1,14 +1,12 @@
-// Function to generate lessons for a course
 function generateLessons(lessonTitle, lessonId) {
 
     $('#loader-container').css('display', 'flex');
-    // Make AJAX request to generate lessons for the course
     $.ajax({
         url: '/api/generate_content',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ lesson_title: lessonTitle, lesson_id: lessonId, course_title: courseTitle, user_id: userId }),
-        success: function(data) {
+        success: function (data) {
             $('.chat-widget').show();
 
             $('#loader-container').hide();
@@ -23,10 +21,10 @@ function generateLessons(lessonTitle, lessonId) {
                 $contentArea.html(content);
                 const $lessonTitle = $('.lesson-title');
                 $lessonTitle.text(lessonTitle);
-               
+
             });
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             $('#loader-container').hide();
             Swal.fire({
                 icon: 'error',
@@ -37,35 +35,45 @@ function generateLessons(lessonTitle, lessonId) {
     });
 }
 
+function scrollChatToBottom() {
+    var chatWidgetBody = $('.chat-widget-body');
+    if (chatWidgetBody.length > 0) {
+        chatWidgetBody.animate({ scrollTop: chatWidgetBody.prop('scrollHeight') }, 300);
+    }
+}
 
-function sendChat(lastChat) {
+function sendChat(lastChat, chatBubbleHTML) {
     var firstLessonId = null; // Initialize variable to store the first lessonId
+    $('.chat-widget-body').append(chatBubbleHTML);
+    $('.chat-widget-input').attr("disabled", "disabled");
+    scrollChatToBottom();
 
-    // Iterate over elements with class .generate-lesson-content
-    $('.generate-lesson-content').each(function(index, element) {
+    $('.generate-lesson-content').each(function (index, element) {
         if (index === 0) { // Check if it's the first element
-            // Get the lessonId attribute from the first element
             firstLessonId = $(element).data('lesson-id');
-            return false; // Exit the loop after retrieving the first lessonId
+            return false;
         }
     });
 
     if (firstLessonId !== null) {
-        // Make AJAX request using the first lessonId
+
         $.ajax({
             url: '/api/generate_reply',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ user_input: lastChat, lesson_id: firstLessonId }),
-            success: function(data) {
-                // Append the reply to the chat widget body
-                $('.chat-widget-body').append('<p style="align-self: flex-end;">' + data.reply + '</p>');
+            success: function (data) {
+                $('.chat-widget-body .chat-bubble').last().remove();
+
+                $('.chat-widget-body').append('<p class="chat-bubble" style="align-self: flex-start;">' + data.reply + '</p>');
+                scrollChatToBottom();
             },
-            error: function(xhr, status, error) {
-                // Handle error if AJAX request fails
-                console.error('Error:', error);
+            error: function (xhr, status, error) {
+                $('.chat-widget-body .chat-bubble').last().remove();
+
             }
         });
+        $('.chat-widget-input').removeAttr("disabled");
     } else {
         console.error('No lessonId found.');
     }
@@ -73,29 +81,38 @@ function sendChat(lastChat) {
 
 
 // Add event listener to Generate Lessons buttons
-$(document).ready(function() {
+$(document).ready(function () {
 
-    $('.chat-widget').hide(); // Hide the chatbot widget if no text in .content-area
+    $('.chat-widget').hide();
 
-    $('.generate-lesson-content').on('click', function() {
-        // Retrieve the course title from the data attribute of the button
+    $('.generate-lesson-content').on('click', function () {
+
         const lessonTitle = $(this).data('lesson-title');
         const lessonId = $(this).data('lesson-id');
         var contentText = $('.content-area').text();
-        
-        generateLessons(lessonTitle, lessonId); // Call generateLessons with the course title
+
+        generateLessons(lessonTitle, lessonId);
     });
 
-    $('.send-chat').click(function() {
-        // Get the value from the input field
+    $('.send-chat').click(function () {
         var message = $('.chat-widget-input input').val();
-    
-        // Clear the input field after retrieving its value
-        $('.chat-widget-input input').val('');
-    
-        // Append the message as a new <p> element inside .chat-widget-body
-        $('.chat-widget-body').append('<p>' + message + '</p>');
 
-        sendChat(message);
+        $('.chat-widget-input input').val('');
+
+
+        const chatBubbleHTML = `
+    <div class="chat-bubble" style="align-self: flex-start;">
+        <div class="typing">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+`;
+
+        $('.chat-widget-body').append('<p class="chat-bubble human" style="align-self: flex-end;">' + message + '</p>');
+        scrollChatToBottom();
+
+        sendChat(message, chatBubbleHTML);
     });
 });

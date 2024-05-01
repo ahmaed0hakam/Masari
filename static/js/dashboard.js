@@ -24,12 +24,14 @@ $(document).ready(function() {
 });
 
 function generateLearningPath(text) {
+    $('#loader-container').css('display', 'flex');
     $.ajax({
         url: '/api/generate_learningpath',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ text: text, user_id: userId }),
         success: function(data) {
+            $('#loader-container').css('display', 'none');
             Swal.fire({
                 icon: 'success',
                 title: 'Learning path generated successfully!',
@@ -41,7 +43,7 @@ function generateLearningPath(text) {
             });
         },
         error: function(xhr, status, error) {
-            console.error('Error generating the learning path:', error);
+            $('#loader-container').css('display', 'none');
             Swal.fire({
                 icon: 'error',
                 title: 'Failed to generate the learning path',
