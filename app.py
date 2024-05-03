@@ -101,7 +101,7 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Password"})
     confirm_password = PasswordField('Confirm Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Confirm Password"})
     birthdate = DateField('Birth Date', validators=[InputRequired()], render_kw={"placeholder": "Birth Date"})
-    cv = FileField('CV', validators=[InputRequired()], render_kw={"placeholder": "Upload CV"})
+    cv = FileField('CV Resume', validators=[InputRequired()], render_kw={"placeholder": "Upload CV"})
     submit = SubmitField('Register')
 
     def validate_username(self, username):

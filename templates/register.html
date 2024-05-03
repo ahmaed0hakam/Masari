@@ -4,37 +4,133 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Register Page</h1>
-    <form method="POST" action="{{ url_for('register') }}" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.name.label(class="form-label") }}
-            {{ form.name(class="form-control") }}
+<div class="register-container">
+    <div class="register-card">
+        <h1 style="margin-top: 30px;">Register Page</h1>
+        <div style="width: 70%;">
+            <form method="POST" action="{{ url_for('register') }}" enctype="multipart/form-data"
+                style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px; margin-bottom: 30px;">
+                <div
+                    style="width: 100%; display: flex; justify-content: center; align-items: stretch; flex-direction: column; width: 100%; gap: 20px;">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.birthdate.label(class="form-label") }}
+                        {{ form.birthdate(class="form-control", placeholder="YYYY-MM-DD") }}
+                    </div>
+                    <div class="form-group">
+                        <!-- Custom file input container -->
+                        <div class="file-input-container">
+                            {{ form.cv.label(class="form-label") }}<br />
+                            <!-- Styled file input button -->
+                            <label for="cv-upload" class="file-input-button">
+                                <i class="file-input-icon fas fa-upload" style="margin-right: 8px;"></i>Choose File
+                            </label>
+                            <!-- Actual file input (hidden) -->
+                            {{ form.cv(id="cv-upload", class="form-control-file") }}
+                            <!-- Display selected file name -->
+                            <span class="file-name-display" id="cv-file-name"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 30px;">
+                    {{ form.submit(class="btn", style="background-color: #0097b2; color: #fff; width: 200px; font-size:
+                    20px;") }}
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            {{ form.username.label(class="form-label") }}
-            {{ form.username(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.confirm_password.label(class="form-label") }}
-            {{ form.confirm_password(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.birthdate.label(class="form-label") }}
-            {{ form.birthdate(class="form-control", placeholder="YYYY-MM-DD") }}
-        </div>
-        <div class="form-group">
-            {{ form.cv.label(class="form-label") }}
-            {{ form.cv(class="form-control-file") }}  <!-- File input field -->
-        </div>
-        <div class="form-group">
-            {{ form.submit(class="btn btn-primary") }}
-        </div>
-    </form>
+    </div>
 </div>
+<script>
+    document.getElementById('cv-upload').addEventListener('change', function () {
+        var fileName = this.files[0].name;
+        document.getElementById('cv-file-name').textContent = fileName;
+    });
+</script>
+<style>
+    .form-label {
+        font-size: 20px;
+    }
+
+    input {
+        border: 2px solid #ccc !important;
+        border-radius: 50px !important;
+        transition: border-color 0.3s ease !important;
+    }
+
+    input:focus {
+        outline: none !important;
+        border-color: #0097b2 !important;
+    }
+
+    main {
+        background-color: #eee;
+    }
+
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .register-card {
+        background-color: #fff;
+        padding: 20px;
+        width: 50%;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .file-input-container {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Hidden default file input */
+    .file-input-container input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    /* Styled file input button */
+    .file-input-button {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #aaa;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* Style for displaying selected file name */
+    .file-name-display {
+        margin-top: 8px;
+        font-style: italic;
+    }
+</style>
 {% endblock %}

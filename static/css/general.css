@@ -41,7 +41,7 @@ main {
     position: relative;
     flex: 1;
     /* Allow div to grow and fill remaining space */
-    background-color: #f6f7f9;
+    background-color: #eee;
     padding: 20px;
 }
 

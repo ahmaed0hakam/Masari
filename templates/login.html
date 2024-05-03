@@ -1,18 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Login Page</h1>
+<!-- templates/register.html -->
+{% extends 'base.html' %}
 
-    <form method="POST" action="">
-        {{ form.hidden_tag() }}
-        {{ form.username }}
-        {{ form.password }}
-        {{ form.submit }}
-    </form>
-</body>
-</html>
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-card">
+        <h1 style="margin-top: 30px;">Login Page</h1>
+        <div style="width: 70%;">
+            <form method="POST"
+                style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px; margin-bottom: 30px;">
+                <div
+                    style="width: 100%; display: flex; justify-content: center; align-items: stretch; flex-direction: column; width: 100%; gap: 20px;">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 30px;">
+                    {{ form.submit(class="btn", style="background-color: #0097b2; color: #fff; width: 200px; font-size:
+                    20px;") }}
+                </div>
+                <a style="margin-top: 15px; align-self: end;" href="{{url_for('register')}}">Don't have an account? Register</a>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    .form-label {
+        font-size: 20px;
+    }
+
+    input {
+        border: 2px solid #ccc !important;
+        border-radius: 50px !important;
+        transition: border-color 0.3s ease !important;
+    }
+
+    input:focus {
+        outline: none !important;
+        border-color: #0097b2 !important;
+    }
+
+    main {
+        background-color: #eee;
+    }
+
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .register-card {
+        background-color: #fff;
+        padding: 20px;
+        width: 50%;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+</style>
+{% endblock %}
