@@ -21,9 +21,9 @@
 -- DELETE FROM learning_paths
 -- WHERE id = 16;
 
-ALTER TABLE Users
+-- ALTER TABLE Lessons
 
-ADD COLUMN pdf_path TEXT;
+-- ADD COLUMN completed INTEGER;
 
 
 -- INSERT INTO learning_paths (title, description, user_id)
@@ -37,8 +37,9 @@ ADD COLUMN pdf_path TEXT;
 -- SET birthdate = '2001-03-24'  -- Replace new_user_id with the desired new user_id
 -- WHERE id = 2;
 
--- ALTER TABLE learning_paths
--- DROP COLUMN course_id;
+UPDATE lessons
+SET completed = 1
+WHERE id = 117;
 
 -- -- Update user_id for LearningPaths with id = 2
 -- UPDATE Users

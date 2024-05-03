@@ -254,7 +254,7 @@ footer {
     z-index: 99999999;
     bottom: 20px;
     right: 20px;
-    /* width: 340px; */
+    width: 405px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -301,10 +301,6 @@ footer {
     outline: none;
 }
 
-.chat-widget-input .microphone-btn {
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-}
 
 .chat-widget-input button {
     padding: 8px 15px;
@@ -315,4 +311,10 @@ footer {
     border-radius: 3px;
     cursor: pointer;
     outline: none;
+}
+
+.chat-widget-input .microphone-btn {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    margin: 0;
 }

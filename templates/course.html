@@ -11,10 +11,12 @@
         var courseTitle = '{{course_title}}';
     </script>
     <!-- Content for the aside element (sidebar) -->
+    <h3>Course: <span style="color: #0097b2;">{{course_title}}</span></h3>
     <h4 class="sd-header">Lessons</h4>
-    {% if lessons %}
+    <div class="lessons-container">
+        {% if lessons %}
         {% for lesson in lessons %}
-            <p class="generate-lesson-content" data-lesson-title="{{ lesson.title }}" data-lesson-id="{{ lesson.id }}">
+            <p class="generate-lesson-content {% if lesson.completed == 1 %}completed{% endif %}" data-lesson-title="{{ lesson.title }}" data-lesson-id="{{ lesson.id }}">
                 {{lesson.title}}
             </p>
         {% endfor %}
@@ -22,6 +24,7 @@
     {% else %}
         <p>No lessons available.</p>
     {% endif %}
+    </div>
 </aside>
 <div class="main-content">
     <!-- Content for the main div next to the aside -->
@@ -37,7 +40,7 @@
     <div class="chat-widget-body">
     </div>
     <div class="chat-widget-input">
-    <button id="startBtn" class="microphone-btn"><img width="20" src="{{ url_for('static', filename='images/microphone.png') }}"></button>
+        <button id="startBtn" class="microphone-btn"><img width="20" src="{{ url_for('static', filename='images/microphone.png') }}"></button>
         <input type="text" id="output" placeholder="Type your question...">
         <button class="send-chat" style="border-color: transparent;
         background-color: #0097b2;

@@ -69,6 +69,24 @@ p.chat-bubble {
     margin-right: 0;
 }
 
+.lessons-container {
+    margin: 0 30px;
+}
+
+.generate-lesson-content {
+    position: relative; /* Make position relative to enable absolute positioning of ::before */
+}
+
+/* Define ::before pseudo-element to display checkmark icon */
+.completed::before {
+    content: "\2713"; /* Unicode for checkmark (✓) */
+    position: absolute; /* Position the ::before content absolutely within the lesson title */
+    left: -30px; /* Position the ::before content at the start of the lesson title */
+    top: -10px; /* Align the ::before content vertically centered */
+    color: #0097b2; /* Color of the checkmark icon */
+    font-size: 32px; /* Font size of the checkmark icon */
+}
+
 @keyframes mercuryTypingAnimation {
     0% {
         transform: translateY(0px);
@@ -84,4 +102,5 @@ p.chat-bubble {
         transform: translateY(0px);
         background-color: #0097b2;
     }
+
 }

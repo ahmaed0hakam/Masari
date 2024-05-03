@@ -1,5 +1,5 @@
 function generateLessons(lessonTitle, lessonId) {
-
+    $('.chat-widget').hide();
     $('#loader-container').css('display', 'flex');
     $.ajax({
         url: '/api/generate_content',
@@ -7,6 +7,7 @@ function generateLessons(lessonTitle, lessonId) {
         contentType: 'application/json',
         data: JSON.stringify({ lesson_title: lessonTitle, lesson_id: lessonId, course_title: courseTitle, user_id: userId }),
         success: function (data) {
+            $('.chat-widget-body').empty();
             $('.chat-widget').show();
 
             $('#loader-container').hide();
@@ -21,7 +22,7 @@ function generateLessons(lessonTitle, lessonId) {
                 var converter = new showdown.Converter();
                 var html = converter.makeHtml(content);
 
-                $contentArea.html(html);
+                $contentArea.html(html + `<button onClick="markAsCompleted(${lessonId})" style="border-color: transparent; background-color: #0097b2; color: #fff; border-radius: 3px; font-size: 22px;">Mark as completed</button>`);
                 const $lessonTitle = $('.lesson-title');
                 $lessonTitle.text(lessonTitle);
 
@@ -29,12 +30,13 @@ function generateLessons(lessonTitle, lessonId) {
         },
         error: function (xhr, status, error) {
             $('#loader-container').hide();
+            $('.chat-widget').show();
             Swal.fire({
                 icon: 'error',
                 title: 'Failed to generate lesson',
                 text: 'Please try again later'
             });
-        }
+        }  
     });
 }
 
@@ -80,6 +82,24 @@ function sendChat(lastChat, chatBubbleHTML) {
     } else {
         console.error('No lessonId found.');
     }
+}
+
+function markAsCompleted(lessonId) {
+
+
+    $.ajax({
+        url: '/api/mark_completed',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ lesson_id: lessonId}),
+        success: function (data) {
+            $('[data-lesson-id="' + lessonId + '"]').addClass('completed');
+        },
+        error: function (xhr, status, error) {
+
+        }
+    });
+
 }
 
 

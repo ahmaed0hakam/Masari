@@ -7,7 +7,7 @@ from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, DateField
+from wtforms import StringField, PasswordField, SubmitField, DateField, FileField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -92,6 +92,8 @@ class Lessons(db.Model):
     content = db.Column(db.Text, nullable=True)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
     course = db.relationship('Courses', backref=db.backref('lessons', lazy=True))
+    completed = db.Column(db.Boolean, default=0, nullable=False)
+
 
 class RegisterForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired(), Length(min=3, max=20)], render_kw={"placeholder": "Name"})
@@ -99,6 +101,7 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Password"})
     confirm_password = PasswordField('Confirm Password', validators=[InputRequired(), Length(min=6)], render_kw={"placeholder": "Confirm Password"})
     birthdate = DateField('Birth Date', validators=[InputRequired()], render_kw={"placeholder": "Birth Date"})
+    cv = FileField('CV', validators=[InputRequired()], render_kw={"placeholder": "Upload CV"})
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -154,23 +157,23 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        cv_file = request.files['cv']
-        if cv_file and allowed_file(cv_file.filename):
-            filename = secure_filename(cv_file.filename)
-            cv_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            cv_file.save(cv_path)
-            new_user = Users(
-                username=form.username.data,
-                password=hashed_password,
-                name=form.name.data,
-                birthdate=form.birthdate.data,  # Use the birthdate string directly
-                pdf_path=cv_path  # Assuming you have added a cv field to the Users model
-            )
-            db.session.add(new_user)
-            db.session.commit()
-            return redirect(url_for('login'))
-        else:
-            flash('Invalid file type.')
+        # cv_file = request.files['cv']
+        # if cv_file and allowed_file(cv_file.filename):
+        #     filename = secure_filename(cv_file.filename)
+        #     cv_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        #     cv_file.save(cv_path)
+        new_user = Users(
+            username=form.username.data,
+            password=hashed_password,
+            name=form.name.data,
+            birthdate=form.birthdate.data,
+            # pdf_path=cv_path 
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    else:
+        flash('Invalid file type.')
     return render_template('register.html', form=form)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -206,8 +209,9 @@ def course(course_id, course_title):
     decoded_course_title = course_title.replace('-', ' ')
 
     lessons = Lessons.query.filter_by(course_id=course_id).all()
+    print(lessons)
 
-    lessons_titles = [{'id':lesson.id, 'title': lesson.title} for lesson in lessons]
+    lessons_titles = [{'id':lesson.id, 'title': lesson.title, 'completed': lesson.completed} for lesson in lessons]
 
     return render_template('course.html', lessons=lessons_titles, course_title=decoded_course_title)
 
@@ -274,7 +278,6 @@ Ensure the output adheres strictly to the format provided, without including any
 
 
         for course in courses_titles:
-            print(course)
             new_course = Courses(title=course, learning_path_id=new_path.id)
             db.session.add(new_course)
             db.session.commit()
@@ -411,21 +414,17 @@ def generate_content():
     print(prompt)
     response_llm = llm.invoke(prompt)
     response_llm = response_llm.replace("```html", "").replace("```", "").strip()
-    print(response_llm)
-    # lesson = Lessons.query.get(lesson_id)
+    current_lesson = Lessons.query.get(lesson_id)
 
-    # if lesson:
-    #     # Update the lesson's content with the generated response
-    #     lesson.content = response_llm
+    if current_lesson:
+        # Update the null lesson's content with the generated response
+        current_lesson.content = response_llm
 
-    #     # Commit the changes to the database
-    #     db.session.commit()
+        db.session.commit()
 
-    #     # Return a success response
-    #     return jsonify({'content': response_llm}), 200
-    # else:
-    #     # If lesson with the given lesson_id is not found
-    #     return jsonify({'message': 'Lesson not found'}), 404
+        return jsonify({'content': response_llm}), 200
+    else:
+        return jsonify({'message': 'Lesson not found'}), 404
     
 @app.route('/api/generate_reply', methods=['POST'])
 @login_required
@@ -450,6 +449,24 @@ def generate_reply():
     response_llm = llm.invoke(context_template)
 
     return jsonify({'reply': response_llm}), 200
+
+@app.route('/api/mark_completed', methods=['POST'])
+@login_required
+def mark_completed():
+
+    # Retrieve data from incoming JSON request
+    request_data = request.get_json()
+    lesson_id = request_data.get('lesson_id')
+
+    current_lesson = Lessons.query.get(lesson_id)
+
+    if current_lesson:
+        # Update the null lesson's content with the generated response
+        current_lesson.completed = 1
+
+        db.session.commit()
+
+        return jsonify({'message': f"lesson {lesson_id} completed"}), 200
 
 
 
