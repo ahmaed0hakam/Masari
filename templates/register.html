@@ -1,22 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+<!-- templates/register.html -->
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container">
     <h1>Register Page</h1>
-    
-    <form method="POST" action="">
+    <form method="POST" action="{{ url_for('register') }}">
         {{ form.hidden_tag() }}
-        {{ form.name }}
-        {{ form.username }}
-        {{ form.password }}
-        {{ form.confirm_password }}
-        {{ form.birthdate }}
-        {{ form.submit }}
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.username.label }}
+            {{ form.username(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.birthdate.label }}
+            {{ form.birthdate(class="form-control") }}
+        </div>
+        <div>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
     </form>
-    
-</body>
-</html>
+</div>
+{% endblock %}

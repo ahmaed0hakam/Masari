@@ -18,8 +18,13 @@
 -- SET content = NULL
 -- WHERE course_id = 16;
 
-DELETE FROM learning_paths
-WHERE id = 16;
+-- DELETE FROM learning_paths
+-- WHERE id = 16;
+
+ALTER TABLE Users
+
+ADD COLUMN pdf_path TEXT;
+
 
 -- INSERT INTO learning_paths (title, description, user_id)
 -- VALUES ('Path1', 'Learn Python programming basics', 3),

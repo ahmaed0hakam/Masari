@@ -1,4 +1,8 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+import os
+import pdfplumber
+
+import re
+from flask import Flask, flash, render_template, redirect, url_for, request, jsonify
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -7,7 +11,6 @@ from wtforms import StringField, PasswordField, SubmitField, DateField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from datetime import datetime
 
 
 #############################################
@@ -15,13 +18,10 @@ from langchain_community.llms import Ollama
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks.manager import CallbackManager
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.prompts import PromptTemplate
 #############################################
 
+from flask import request
+from werkzeug.utils import secure_filename
 
 from flask import Flask
 from flask_cors import CORS
@@ -31,6 +31,7 @@ cors = CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'My|!w>YD/IT[&iE}?yV#>;}Xf]^7YgLV'
+app.config['UPLOAD_FOLDER'] = 'CVs'
 
 # Define the Ollama model and callback manager
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
@@ -44,6 +45,11 @@ login_manager = LoginManager(app)
 
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'pdf', 'doc', 'docx'}
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -61,7 +67,7 @@ class Users(db.Model, UserMixin):
     name = db.Column(db.String(100), nullable=False)
     birthdate = db.Column(db.Date)
     learning_paths = db.relationship('LearningPaths', backref='user', lazy=True)
-    courses = db.relationship('Courses', backref='user', lazy=True)
+    pdf_path = db.Column(db.String(150))  # Path to the CV file
 
 
 class LearningPaths(db.Model):
@@ -144,25 +150,27 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
-@login_required_redirect_dashboard
 def register():
     form = RegisterForm()
-
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-
-        new_user = Users(
-            username=form.username.data,
-            password=hashed_password,
-            name=form.name.data,
-            birthdate=form.birthdate.data  # Use the birthdate string directly
-        )
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        return redirect(url_for('login'))
-
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        cv_file = request.files['cv']
+        if cv_file and allowed_file(cv_file.filename):
+            filename = secure_filename(cv_file.filename)
+            cv_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            cv_file.save(cv_path)
+            new_user = Users(
+                username=form.username.data,
+                password=hashed_password,
+                name=form.name.data,
+                birthdate=form.birthdate.data,  # Use the birthdate string directly
+                pdf_path=cv_path  # Assuming you have added a cv field to the Users model
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        else:
+            flash('Invalid file type.')
     return render_template('register.html', form=form)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -209,11 +217,26 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+import re
+
+def parse_prompt(input_text):
+    # This pattern matches lines starting with a number, a period, and captures the course title
+    pattern = r'^\d+\.\s(.+)$'
+    
+    # Find all occurrences of the pattern
+    courses = re.findall(pattern, input_text, re.MULTILINE)
+    return courses
+
+
+
+
 @app.route('/api/generate_learningpath', methods=['POST'])
 @login_required
 def generate_learning_path():
 
     try:
+
         request_data = request.get_json()
 
         lp_title = request_data.get('text')
@@ -223,20 +246,35 @@ def generate_learning_path():
 
         # Define the prompt template with revised instructions
         prompt_template = """
-        You are creating a personalized learning path for a user interested in {lp_title}. 
-        Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names, the output format should be string separated by commas:
-        """
+You are creating a personalized learning path for a user interested in {lp_title}. 
+Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names:
 
+## **Generate Output**:
+Format the output to list only the names of the recommended courses under the header Personalized Learning Path: [Learning Path Name].
+Ensure the output adheres strictly to the format provided, without including any descriptive text, comments, or conversational elements.
+
+## **Output Format:**
+```
+# Personalized Learning Path: [Learning Path Name]
+1. [Course Name 1]
+2. [Course Name 2]
+3. (repeat as necessary for additional courses)
+```
+    """
+
+        # Populate the prompt with the user's topic
+        prompt = prompt_template.format(lp_title=lp_title)
+
+        response_llm = llm.invoke(prompt)
+
+        courses_titles = parse_prompt(response_llm)
         new_path = LearningPaths(title=lp_title, user_id=current_user.id)
         db.session.add(new_path)
         db.session.commit()
-        
-        # Populate the prompt with the user's topic
-        prompt = prompt_template.format(lp_title=lp_title)  # Provide user_title as a named argument
-        response_llm = llm.invoke(prompt)
 
-        lp_courses = response_llm.replace('"', '').split(',')
-        for course in lp_courses:
+
+        for course in courses_titles:
+            print(course)
             new_course = Courses(title=course, learning_path_id=new_path.id)
             db.session.add(new_course)
             db.session.commit()
@@ -250,6 +288,9 @@ def generate_learning_path():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
+
+
+
 @app.route('/api/generate_lessons', methods=['POST'])
 @login_required
 def generate_lessons():
@@ -258,7 +299,6 @@ def generate_lessons():
 
         course_title = request_data.get('course_title')
         course_id = request_data.get('course_id')
-        user_id = request_data.get('user_id')
 
         response = {
             'id': course_id,
@@ -269,21 +309,34 @@ def generate_lessons():
 
         if existing_lesson:
             return jsonify(response), 201
-        # Define the prompt template with revised instructions
+        learning_paths = current_user.learning_paths
+        # Prompt template for course recommendation
         lesson_prompt_template = """
-        You are creating a course for a user interested in learning about {course_title}. 
-        Please provide proper number of lesson titles that would be suitable for this course, and no other text, just lessons tiles, each prefixed with a number, don't write anything else.
-        Example:
-        1. Introduction to python
-        2. Data types in python
+# Generating a Personalized Lessons 
+You are creating a course for a user interested in learning about {course_title}, This course from this learning paths {learning_paths}. 
+Please provide proper number of lesson titles that would be suitable for this course, and no other text, just lessons tiles, each prefixed with a number, don't write anything else.
+
+## **Generate Output**:
+Format the output to list only the names of the recommended lessons title from course {course_title} under the header Personalized Lessons Of Course: {course_title}.
+Ensure the output adheres strictly to the format provided, without including any descriptive text, comments, or conversational elements.
+
+## **Output Format:**
+```
+# Personalized Learning Path: [Course Name]
+1. [Lesson Name 1]
+2. [Lesson Name 2]
+3. (repeat as necessary for additional Lessons)
+```
+
+## instructions
         """
-        
+
         # Populate the prompt with the user's topic
-        prompt = lesson_prompt_template.format(course_title=course_title)
+        prompt = lesson_prompt_template.format(course_title=course_title, learning_paths=learning_paths)
 
         response_llm = llm.invoke(prompt)
 
-        lesson_titles = response_llm.split('\n')  # Split by new lines to get individual lesson titles
+        lesson_titles = parse_prompt(response_llm)
 
         for lesson_title in lesson_titles:
             new_lesson = Lessons(title=lesson_title, course_id=course_id)
@@ -310,10 +363,10 @@ def generate_content():
 
     if existing_content:
         return jsonify({'content': existing_content}), 200
+    learning_paths = current_user.learning_paths
 
     content_prompt_template = f"""
 
-    <div id="lesson-content">
     Lesson: {lesson_title}"
 
     Lesson Overview:
@@ -324,38 +377,55 @@ def generate_content():
     2. 
     3. 
 
-    Examples and Explanations:
+    **Examples and Explanations:**
     - Please include illustrative examples to clarify the concepts.
     - Provide detailed explanations to ensure comprehension.
 
-    Exercises:
+    **Exercises:**
     - Develop exercises or problems related to the lesson topics.
     - Include solutions or hints where applicable.
 
-    Additional Notes:
+    **Additional Notes:**
     Feel free to add any additional insights or details that would enhance this lesson.
+    
+    **Instructions:**
+    - Do not use (Here Markdown) or (Here XYZ) or any form of conversations just give me the content without any additional conversations   
+    - Design a Markdown template focusing on individual lessons within a course.
+    - Ensure each image description adheres to a "Context-Dependent Detail in High Detail" standard.
 
-    </div>
-    """
-    prompt = content_prompt_template.format(lesson_title=lesson_title, course_title=course_title)
+    **Content Details:**
+    - _[Provide detailed descriptions of the main topics and any critical content covered in this lesson.]_
 
+    **Image Description Placeholder: (Option, if it is necessary)**
+    <img:description>
+    - **Purpose**: _[Purpose of the image]_
+    - **Details**: _[Detailed description including visual elements]_
+    - **Context**: _[Context-specific adjustments in detail level]_
+    - **Feedback**: _[Approach for incorporating iterative feedback]_
+    - **Priority**: _[Focus areas for image description]_
+    </img>
+    ... [Continue adding Images as needed]
+
+"""
+    prompt = content_prompt_template.format(lesson_title=lesson_title, course_title=course_title, learning_paths=learning_paths)
+    print(prompt)
     response_llm = llm.invoke(prompt)
     response_llm = response_llm.replace("```html", "").replace("```", "").strip()
+    print(response_llm)
+    # lesson = Lessons.query.get(lesson_id)
 
-    lesson = Lessons.query.get(lesson_id)
+    # if lesson:
+    #     # Update the lesson's content with the generated response
+    #     lesson.content = response_llm
 
-    if lesson:
-        # Update the lesson's content with the generated response
-        lesson.content = response_llm
+    #     # Commit the changes to the database
+    #     db.session.commit()
 
-        # Commit the changes to the database
-        db.session.commit()
-
-        # Return a success response
-        return jsonify({'content': response_llm}), 200
-    else:
-        # If lesson with the given lesson_id is not found
-        return jsonify({'message': 'Lesson not found'}), 404
+    #     # Return a success response
+    #     return jsonify({'content': response_llm}), 200
+    # else:
+    #     # If lesson with the given lesson_id is not found
+    #     return jsonify({'message': 'Lesson not found'}), 404
     
 @app.route('/api/generate_reply', methods=['POST'])
 @login_required
