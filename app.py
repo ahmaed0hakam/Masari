@@ -394,21 +394,9 @@ def generate_content():
     **Instructions:**
     - Do not use (Here Markdown) or (Here XYZ) or any form of conversations just give me the content without any additional conversations   
     - Design a Markdown template focusing on individual lessons within a course.
-    - Ensure each image description adheres to a "Context-Dependent Detail in High Detail" standard.
 
     **Content Details:**
     - _[Provide detailed descriptions of the main topics and any critical content covered in this lesson.]_
-
-    **Image Description Placeholder: (Option, if it is necessary)**
-    <img:description>
-    - **Purpose**: _[Purpose of the image]_
-    - **Details**: _[Detailed description including visual elements]_
-    - **Context**: _[Context-specific adjustments in detail level]_
-    - **Feedback**: _[Approach for incorporating iterative feedback]_
-    - **Priority**: _[Focus areas for image description]_
-    </img>
-    ... [Continue adding Images as needed]
-
 """
     prompt = content_prompt_template.format(lesson_title=lesson_title, course_title=course_title, learning_paths=learning_paths)
     print(prompt)
