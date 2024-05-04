@@ -246,30 +246,35 @@ def generate_learning_path():
         lp_title = request_data.get('text')
         user_id = request_data.get('user_id')
 
+        print("LOGGING...\n\t\tbefore prompt")
+
         # path_id = generate_path(text, user_id)
 
         # Define the prompt template with revised instructions
         prompt_template = """
-You are creating a personalized learning path for a user interested in {lp_title}. 
-Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names:
+        You are creating a personalized learning path for a user interested in {lp_title}. 
+        Please provide the courses names only, ordered based on difficulty and correct ordering in the learning path, no another text in the string, only the courses names:
 
-## **Generate Output**:
-Format the output to list only the names of the recommended courses under the header Personalized Learning Path: [Learning Path Name].
-Ensure the output adheres strictly to the format provided, without including any descriptive text, comments, or conversational elements.
+        ## **Generate Output**:
+        Format the output to list only the names of the recommended courses under the header Personalized Learning Path: [Learning Path Name].
+        Ensure the output adheres strictly to the format provided, without including any descriptive text, comments, or conversational elements.
 
-## **Output Format:**
-```
-# Personalized Learning Path: [Learning Path Name]
-1. [Course Name 1]
-2. [Course Name 2]
-3. (repeat as necessary for additional courses)
-```
+        ## **Output Format:**
+        ```
+        # Personalized Learning Path: [Learning Path Name]
+        1. [Course Name 1]
+        2. [Course Name 2]
+        3. (repeat as necessary for additional courses)
+        ```
     """
 
         # Populate the prompt with the user's topic
         prompt = prompt_template.format(lp_title=lp_title)
 
         response_llm = llm.invoke(prompt)
+
+        print("LOGGING...\n\t\tafter llm")
+
 
         courses_titles = parse_prompt(response_llm)
         new_path = LearningPaths(title=lp_title, user_id=current_user.id)
@@ -422,16 +427,28 @@ def generate_reply():
     request_data = request.get_json()
     user_input = request_data.get('user_input')
     lesson_id = request_data.get('lesson_id')
+    print("my lesson id", lesson_id)
     content = Lessons.query.get(lesson_id).content
 
 
-    context_template = f"""You are a learning assistant designed to provide accurate and helpful information. Please use the following details to answer the question provided as short as possible, max to 40 character. If you're unsure about any details, it's important to be honest and precise rather than guessing.
+    context_template = f"""
+        You are a learning assistant designed to provide accurate and helpful information. 
+        Please use the following details to answer the question provided as short as possible, max to 20 character. 
+        If you're unsure about any details, it's important to be honest and precise rather than guessing.
 
-    {content}
+        *Instructions:*
+        - Do not use (Here XYZ) or any form of conversations just give me the Answer without any additional conversations  
 
-    Question: {user_input}
+        
+        Depend on this content and your information:
+        
+        {content}
+        
 
-    Helpful Answer:"""
+        Answer this question:
+        Question: {user_input}
+
+        Helpful Answer:"""
 
 
     response_llm = llm.invoke(context_template)
