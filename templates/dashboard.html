@@ -8,19 +8,19 @@
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 <!-- <section class="content-container"> -->
-    <aside class="sidebar">
+    <aside class="sidebar animate-slide-left">
         <!-- Content for the aside element (sidebar) -->
-        <h3>History</h3>
-        <h4 class="sd-header">Learning Paths</h4>
+        <h3 class="animate-fade-in">History</h3>
+        <h4 class="sd-header animate-fade-in stagger-1">Learning Paths</h4>
         {% if learning_paths %}
             {% for path in learning_paths %}
-                <p>
-                    <a href="{{ url_for('learningpath', path_id=path.id) }}">{{ path.title }}</a>
+                <p class="animate-fade-in stagger-{{ loop.index + 1 }}">
+                    <a href="{{ url_for('learningpath', path_id=path.id) }}" class="hover-lift">{{ path.title }}</a>
                 </p>
             {% endfor %}
         
         {% else %}
-            <p>No learning paths available.</p>
+            <p class="animate-fade-in">No learning paths available.</p>
         {% endif %}
 
         <!-- <h4 class="sd-header">Courses</h4>
@@ -35,29 +35,65 @@
             <p>No courses available.</p>
         {% endif %} -->
     </aside>
-    <div class="main-content">
+    <div class="main-content animate-slide-right">
         <!-- Content for the main div next to the aside -->
-        <h1>Welcome Mr <span style="color: #0097b2;">{{ name }}</span></h1>
+        <h1 class="animate-fade-in">Welcome Mr <span style="color: #0097b2;" class="animate-glow">{{ name }}</span></h1>
         <div class="qa-card-holder">
-            <div class="qa-card">
-                <div class="qa-generate-header">
-                    <div>
-                        <img src="{{ url_for('static', filename='images/logo.svg') }}">
+            <div class="qa-card card-animate animate-scale-in">
+                <div class="qa-generate-header animate-fade-in stagger-1">
+                    <div class="animate-float">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" class="hover-scale">
                     </div>
-                    <p>Empowering my learning approach and upskilling my capabilities.</p>
+                    <p class="animate-fade-in stagger-2">Empowering my learning approach and upskilling my capabilities.</p>
                 </div>
-                <div class="qa-generate-container">
-                    <h6>Choose what and how you want to learn:</h6>
-                    <div class="input-wrapper">
-                        <input type="text" class="styled-input" id="searchInput" placeholder="ex: Intro to GenAI">
+                <div class="qa-generate-container animate-fade-in stagger-3">
+                    <h6 class="animate-fade-in stagger-4">Choose what and how you want to learn:</h6>
+                    <div class="input-wrapper animate-fade-in stagger-5">
+                        <input type="text" class="styled-input ai-thinking" id="searchInput" placeholder="ex: Intro to GenAI">
                     </div>
-                    <div class="buttons">
+                    <div class="buttons animate-fade-in stagger-6">
                         <!-- <button class="styled-button" id="courseButton" disabled>Course</button> -->
-                        <button class="styled-button" id="pathButton" disabled>Create learning path</button>
+                        <button class="styled-button btn-ai" id="pathButton" disabled>
+                            <i class="fas fa-robot"></i> Create learning path
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 <!-- </section> -->
+
+<script>
+// Add AI processing animation when generating learning path
+document.getElementById('pathButton').addEventListener('click', function() {
+    this.classList.add('ai-processing');
+    this.innerHTML = '<i class="fas fa-cog fa-spin"></i> AI is generating...';
+    
+    // Simulate AI processing
+    setTimeout(() => {
+        this.classList.remove('ai-processing');
+        this.innerHTML = '<i class="fas fa-robot"></i> Create learning path';
+    }, 3000);
+});
+
+// Add typing animation to input
+document.getElementById('searchInput').addEventListener('input', function() {
+    if (this.value.length > 0) {
+        this.classList.add('ai-learning');
+    } else {
+        this.classList.remove('ai-learning');
+    }
+});
+
+// Add hover animations to learning path links
+document.querySelectorAll('.sidebar a').forEach(link => {
+    link.addEventListener('mouseenter', function() {
+        this.classList.add('hover-glow');
+    });
+    
+    link.addEventListener('mouseleave', function() {
+        this.classList.remove('hover-glow');
+    });
+});
+</script>
 {% endblock %}

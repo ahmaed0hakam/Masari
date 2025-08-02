@@ -1,8 +1,9 @@
 from flask import jsonify, request
 from flask_login import login_required, current_user
-from app import app, db, llm
+from app import app, db
 from app.models.models import LearningPaths, Courses, Lessons
 from app.utils.helpers import parse_prompt
+from app.services.llm_service import llm_service
 
 @app.route('/api/generate_learningpath', methods=['POST'])
 @login_required
@@ -29,7 +30,7 @@ def generate_learning_path():
         """
 
         prompt = prompt_template.format(lp_title=lp_title)
-        response_llm = llm.invoke(prompt)
+        response_llm = llm_service.generate_response(prompt)
         courses_titles = parse_prompt(response_llm)
         
         new_path = LearningPaths(title=lp_title, user_id=current_user.id)
@@ -78,7 +79,7 @@ def generate_lessons():
         """
 
         prompt = lesson_prompt_template.format(course_title=course_title, learning_paths=learning_paths)
-        response_llm = llm.invoke(prompt)
+        response_llm = llm_service.generate_response(prompt)
         lesson_titles = parse_prompt(response_llm)
 
         for lesson_title in lesson_titles:
@@ -130,7 +131,7 @@ def generate_content():
     - Design a Markdown template focusing on individual lessons within a course.
     """
 
-    response_llm = llm.invoke(content_prompt_template)
+    response_llm = llm_service.generate_response(content_prompt_template, max_length=1000)
     response_llm = response_llm.replace("```html", "").replace("```", "").strip()
     
     current_lesson = Lessons.query.get(lesson_id)
@@ -166,7 +167,7 @@ def generate_reply():
 
     Helpful Answer:"""
 
-    response_llm = llm.invoke(context_template)
+    response_llm = llm_service.generate_response(context_template, max_length=100)
     return jsonify({'reply': response_llm}), 200
 
 @app.route('/api/mark_completed', methods=['POST'])

@@ -1,16 +1,13 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from langchain_community.llms import Ollama
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.callbacks.manager import CallbackManager
-from langchain_core.output_parsers import StrOutputParser
 from config.config import Config
+import os
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.config.from_object(Config)
 
 # Initialize extensions
@@ -22,11 +19,6 @@ cors = CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*
 # Configure login manager
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-
-# Initialize Ollama
-callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-llm = Ollama(model="llama3", callbacks=callback_manager, verbose=True)
-output_parser = StrOutputParser()
 
 # Import routes after app initialization to avoid circular imports
 from app.routes import auth, main, api

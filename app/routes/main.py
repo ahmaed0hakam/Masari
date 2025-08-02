@@ -3,6 +3,13 @@ from flask_login import login_required, current_user
 from app import app
 from app.models.models import LearningPaths, Courses, Lessons
 
+@app.context_processor
+def inject_user_id():
+    if current_user.is_authenticated:
+        return {'userId': current_user.id}
+    else:
+        return {'userId': None}
+
 @app.route('/')
 def home():
     return render_template('home.html')
